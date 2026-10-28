@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16.15-alpine3.24
+    container_name: portal-db
+    environment:
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal123
+      POSTGRES_DB: portal_cliente
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    
+volumes:
+  pgdata:
