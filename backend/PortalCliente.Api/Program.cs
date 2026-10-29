@@ -23,6 +23,7 @@ builder.Services.AddScoped<IPasswordHasher<Cliente>, PasswordHasher<Cliente>>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PerfilService>();
+builder.Services.AddScoped<SolicitacaoService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
