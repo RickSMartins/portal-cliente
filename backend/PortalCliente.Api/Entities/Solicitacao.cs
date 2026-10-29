@@ -12,6 +12,8 @@ public class Solicitacao
     public StatusSolicitacao Status { get; private set; } = StatusSolicitacao.Aberta;
     public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
     public DateTime? AtualizadoEm { get; set; }
+    public int ClienteId { get; set; }
+    public Cliente Cliente { get; set; } = null!;
 
     public void Cancelar()
     {
