@@ -10,11 +10,13 @@ public class AuthService
 {
     private readonly AppDbContext _context;
     private readonly IPasswordHasher<Cliente> _passwordHasher;
+    private readonly TokenService _tokenService;
 
-    public AuthService(AppDbContext context, IPasswordHasher<Cliente> passwordHasher)
+    public AuthService(AppDbContext context, IPasswordHasher<Cliente> passwordHasher, TokenService tokenService)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _tokenService = tokenService;
     }
 
     public async Task CadastrarAsync(CadastroRequest request)
@@ -38,4 +40,25 @@ public class AuthService
         _context.Clientes.Add(cliente);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Email == email);
+
+        if (cliente is null ||
+            _passwordHasher.VerifyHashedPassword(cliente, cliente.SenhaHash, request.Senha)
+                == PasswordVerificationResult.Failed)
+        {
+            throw new UnauthorizedAccessException("E-mail ou senha inválidos.");
+        }
+
+        return new LoginResponse
+        {
+            Token = _tokenService.GerarToken(cliente),
+            Nome = cliente.Nome
+        };
+    }
+
 }
