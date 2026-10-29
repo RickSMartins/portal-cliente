@@ -10,21 +10,26 @@ using PortalCliente.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
+// Controllers, com enums como texto no JSON
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
+builder.Services.AddOpenApi();
+
+// Banco de dados
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Services da aplicação
 builder.Services.AddScoped<IPasswordHasher<Cliente>, PasswordHasher<Cliente>>();
-builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<PerfilService>();
 builder.Services.AddScoped<SolicitacaoService>();
 
+// Autenticação JWT
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -42,22 +47,31 @@ builder.Services
         };
     });
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// CORS: só a origem do frontend
+var origensPermitidas = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+        policy.WithOrigins(origensPermitidas)
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
+app.UseCors("Frontend");
 app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
