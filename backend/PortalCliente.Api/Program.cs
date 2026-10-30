@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using PortalCliente.Api.Data;
 using PortalCliente.Api.Entities;
 using PortalCliente.Api.Services;
+using PortalCliente.Api.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +30,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<PerfilService>();
 builder.Services.AddScoped<SolicitacaoService>();
 
-// Autenticação JWT
+// Autenticação JWT (token lido do cookie HttpOnly)
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -45,6 +46,15 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies[AuthController.NomeCookie];
+                return Task.CompletedTask;
+            }
+        };
     });
 
 // CORS: só a origem do frontend
@@ -55,7 +65,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy =>
         policy.WithOrigins(origensPermitidas)
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod()
+              .AllowCredentials());
 });
 
 var app = builder.Build();

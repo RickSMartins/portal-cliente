@@ -8,15 +8,19 @@ namespace PortalCliente.Api.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly AuthService _authService;
+    public const string NomeCookie = "portal_token";
 
-    public AuthController(AuthService authService)
+    private readonly AuthService _authService;
+    private readonly IConfiguration _configuration;
+
+    public AuthController(AuthService authService, IConfiguration configuration)
     {
         _authService = authService;
+        _configuration = configuration;
     }
 
     [HttpPost("cadastro")]
-    public async Task<IActionResult> Cadastar(CadastroRequest request)
+    public async Task<IActionResult> Cadastrar(CadastroRequest request)
     {
         try
         {
@@ -25,7 +29,7 @@ public class AuthController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(new { mensagem = ex.Message });
         }
     }
 
@@ -35,11 +39,31 @@ public class AuthController : ControllerBase
         try
         {
             var resposta = await _authService.LoginAsync(request);
-            return Ok(resposta);
+
+            var horas = int.Parse(_configuration["Jwt:ExpiracaoHoras"]!);
+            Response.Cookies.Append(NomeCookie, resposta.Token, CriarOpcoesCookie(DateTimeOffset.UtcNow.AddHours(horas)));
+
+            return Ok(new { nome = resposta.Nome });
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Unauthorized(new { message = ex.Message });
+            return Unauthorized(new { mensagem = ex.Message });
         }
     }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete(NomeCookie, CriarOpcoesCookie(null));
+        return NoContent();
+    }
+
+    private CookieOptions CriarOpcoesCookie(DateTimeOffset? expiraEm) => new()
+    {
+        HttpOnly = true,
+        Secure = Request.IsHttps,
+        SameSite = SameSiteMode.Strict,
+        Path = "/",
+        Expires = expiraEm
+    };
 }
