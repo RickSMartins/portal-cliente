@@ -3,10 +3,10 @@ import Layout from './components/Layout';
 import RotaPrivada from './components/RotaPrivada';
 import Login from './pages/Login';
 import Cadastro from './pages/Cadastro';
-
-function EmConstrucao({ titulo }) {
-  return <h1>{titulo} (em construção)</h1>;
-}
+import Solicitacoes from './pages/Solicitacoes';
+import NovaSolicitacao from './pages/NovaSolicitacao';
+import DetalheSolicitacao from './pages/DetalheSolicitacao';
+import Perfil from './pages/Perfil';
 
 export default function App() {
   return (
@@ -18,9 +18,10 @@ export default function App() {
       {/* Rotas privadas: só com login, e todas dentro do Layout */}
       <Route element={<RotaPrivada />}>
         <Route element={<Layout />}>
-          <Route path="/solicitacoes" element={<EmConstrucao titulo="Minhas solicitações" />} />
-          <Route path="/solicitacoes/nova" element={<EmConstrucao titulo="Nova solicitação" />} />
-          <Route path="/perfil" element={<EmConstrucao titulo="Meu perfil" />} />
+          <Route path="/solicitacoes" element={<Solicitacoes />} />
+          <Route path="/solicitacoes/nova" element={<NovaSolicitacao />} />
+          <Route path="/solicitacoes/:id" element={<DetalheSolicitacao />} />
+          <Route path="/perfil" element={<Perfil />} />
         </Route>
       </Route>
 

@@ -22,8 +22,14 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Usado pelo Perfil quando o cliente troca o nome
+  function atualizarNome(novoNome) {
+    localStorage.setItem('nome', novoNome);
+    setNome(novoNome);
+  }
+
   return (
-    <AuthContext.Provider value={{ nome, entrar, sair }}>
+    <AuthContext.Provider value={{ nome, entrar, sair, atualizarNome }}>
       {children}
     </AuthContext.Provider>
   );
